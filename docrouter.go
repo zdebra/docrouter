@@ -21,9 +21,10 @@ func New(opts Options) *Router {
 			Version: opts.Version,
 		},
 	}
-	for _, serverURL := range opts.ServerURLs {
+	for _, server := range opts.Servers {
 		docRoot.AddServer(&openapi3.Server{
-			URL: serverURL,
+			URL:         server.URL,
+			Description: server.Description,
 		})
 	}
 	return &Router{
