@@ -7,13 +7,13 @@ import (
 	"github.com/gorilla/mux"
 )
 
-type Server struct {
+type Router struct {
 	opts      Options
 	docRoot   *openapi3.T
 	muxRouter *mux.Router
 }
 
-func New(opts Options) *Server {
+func New(opts Options) *Router {
 	docRoot := openapi3.T{
 		OpenAPI: "3.0.0",
 		Info: &openapi3.Info{
@@ -26,14 +26,14 @@ func New(opts Options) *Server {
 			URL: serverURL,
 		})
 	}
-	return &Server{
+	return &Router{
 		opts:      opts,
 		docRoot:   &docRoot,
 		muxRouter: mux.NewRouter(),
 	}
 }
 
-func (srv *Server) AddRoute(route Route) error {
+func (srv *Router) AddRoute(route Route) error {
 	if err := srv.validateRoute(&route); err != nil {
 		return fmt.Errorf("route validation: %v", err)
 	}
@@ -47,7 +47,7 @@ func (srv *Server) AddRoute(route Route) error {
 	return nil
 }
 
-func (srv *Server) addRouteToDoc(route *Route) error {
+func (srv *Router) addRouteToDoc(route *Route) error {
 	for _, method := range route.Methods {
 		operation := openapi3.Operation{}
 		srv.docRoot.AddOperation(route.Path, method, &operation)
@@ -55,7 +55,7 @@ func (srv *Server) addRouteToDoc(route *Route) error {
 	return nil
 }
 
-func (*Server) validateRoute(route *Route) error {
+func (*Router) validateRoute(route *Route) error {
 	if route.Handler == nil {
 		return fmt.Errorf("handler is nil")
 	}
@@ -65,7 +65,7 @@ func (*Server) validateRoute(route *Route) error {
 	return nil
 }
 
-func (srv *Server) registerHandler(route *Route) error {
+func (srv *Router) registerHandler(route *Route) error {
 	// for _, serverURL := range srv.opts.ServerURLs {
 	srv.muxRouter.
 		Handle(route.Path, route.Handler).
@@ -74,12 +74,3 @@ func (srv *Server) registerHandler(route *Route) error {
 	// }
 	return nil
 }
-
-// Do I want to expose server or just a router?
-// func (srv *Server) ListenAndServe(port string) error {
-// 	httpSrv := http.Server{
-// 		Handler: srv.muxRouter,
-// 		Addr:    port,
-// 	}
-// 	return httpSrv.ListenAndServe()
-// }
