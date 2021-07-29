@@ -12,4 +12,9 @@ type Route struct {
 	PathParams   interface{}
 	Middlewares  []func(http.Handler) http.Handler
 	Handler      http.Handler
+
+	// Short summary
+	Summary string
+	// Optional description. Should use CommonMark syntax
+	Description string
 }

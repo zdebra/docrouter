@@ -45,6 +45,7 @@ func TestDocServer(t *testing.T) {
 		// QueryParams:  myQueryParams{},
 		// HeaderParams: myHeaderParams{},
 		// PathParams:   myPathParams{},
+		Summary: "Get All Stars",
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprint(w, expectedHandlerOutput)
 		}),

@@ -2,8 +2,10 @@ package docserver
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/getkin/kin-openapi/openapi3"
+	validation "github.com/go-ozzo/ozzo-validation"
 	"github.com/gorilla/mux"
 )
 
@@ -50,28 +52,33 @@ func (srv *Router) AddRoute(route Route) error {
 
 func (srv *Router) addRouteToDoc(route *Route) error {
 	for _, method := range route.Methods {
-		operation := openapi3.Operation{}
+		operation := openapi3.Operation{
+			Summary:     route.Summary,
+			Description: route.Description,
+			OperationID: uniqueOperationID(route),
+			Responses:   openapi3.NewResponses(),
+		}
 		srv.docRoot.AddOperation(route.Path, method, &operation)
 	}
 	return nil
 }
 
+func uniqueOperationID(route *Route) string {
+	// todo: ensure uniqueness
+	return strings.ToLower(strings.ReplaceAll(route.Summary, " ", "-"))
+}
+
 func (*Router) validateRoute(route *Route) error {
-	if route.Handler == nil {
-		return fmt.Errorf("handler is nil")
-	}
-	if route.Path == "" {
-		return fmt.Errorf("path is empty")
-	}
-	return nil
+	return validation.ValidateStruct(route,
+		validation.Field(&route.Handler, validation.NotNil),
+		validation.Field(&route.Path, validation.Required),
+		validation.Field(&route.Summary, validation.Required),
+	)
 }
 
 func (srv *Router) registerHandler(route *Route) error {
-	// for _, serverURL := range srv.opts.ServerURLs {
 	srv.muxRouter.
 		Handle(route.Path, route.Handler).
 		Methods(route.Methods...)
-		// Host(serverURL) todo add server
-	// }
 	return nil
 }
