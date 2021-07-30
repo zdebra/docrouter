@@ -41,6 +41,18 @@ func (r *Route) openAPI3Params() (openapi3.Parameters, error) {
 			})
 		}
 	}
+	if r.QueryParams != nil {
+		reflectedParams, err := createParamsWithReflection(r.QueryParams, openapi3.ParameterInQuery, false)
+		if err != nil {
+			return nil, fmt.Errorf("create query params: %w", err)
+		}
+
+		for _, param := range reflectedParams {
+			params = append(params, &openapi3.ParameterRef{
+				Value: param,
+			})
+		}
+	}
 	return params, nil
 }
 
@@ -58,22 +70,37 @@ func createParamsWithReflection(structPtr interface{}, inParam string, forceRequ
 			// field doesn't have a docrouter tag
 			continue
 		}
-		// fieldName := typeField.Name
+		fieldName := typeField.Name
 		nameTag, _ := tagLookup("name", docrouterTag)
 		descTag, _ := tagLookup("desc", docrouterTag)
 		exampleStrTag, _ := tagLookup("example", docrouterTag)
+		requiredStrTag, _ := tagLookup("required", docrouterTag)
 
 		var exampleTag interface{}
 		switch typeField.Type.Kind() {
 		case reflect.Int:
-			exampleTag, _ = strconv.Atoi(exampleStrTag)
+			x, err := strconv.Atoi(exampleStrTag)
+			if err != nil {
+				return nil, fmt.Errorf("invalid int value for field %q, tag: `example`: %v", fieldName, err)
+			}
+			exampleTag = x
+		case reflect.Bool:
+			x, err := strconv.ParseBool(exampleStrTag)
+			if err != nil {
+				return nil, fmt.Errorf("invalid bool value for field %q, tag: `example`: %v", fieldName, err)
+			}
+			exampleTag = x
 		default:
 			exampleTag = exampleStrTag
 		}
 
 		required := true
 		if !forceRequired {
-			// todo parse required from tag
+			x, err := strconv.ParseBool(requiredStrTag)
+			if err != nil {
+				return nil, fmt.Errorf("invalid bool value for field %q, tag: `required`: %v", fieldName, err)
+			}
+			required = x
 		}
 
 		params = append(params, &openapi3.Parameter{
