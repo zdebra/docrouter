@@ -28,43 +28,61 @@ type Route struct {
 }
 
 func (r *Route) openAPI3Params() (openapi3.Parameters, error) {
-	// Path: name,description,example
-	params := openapi3.NewParameters()
+	params := openapi3.Parameters{}
 	if r.PathParams != nil {
-		v := reflect.ValueOf(r.PathParams).Elem()
-		if !v.CanAddr() {
-			return nil, fmt.Errorf("cannot assign to the item passed, item must be a pointer in order to assign")
+		pathParams, err := createParamsWithReflection(r.PathParams, openapi3.ParameterInPath, true)
+		if err != nil {
+			return nil, fmt.Errorf("create path params: %w", err)
 		}
 
-		for i := 0; i < v.NumField(); i++ {
-			typeField := v.Type().Field(i)
-			docrouterTag, found := typeField.Tag.Lookup("docrouter")
-			if !found {
-				// field doesn't have a docrouter tag
-				continue
-			}
-			// fieldName := typeField.Name
-			nameTag, _ := tagLookup("name", docrouterTag)
-			descTag, _ := tagLookup("desc", docrouterTag)
-			exampleStrTag, _ := tagLookup("example", docrouterTag)
-
-			var exampleTag interface{}
-			switch typeField.Type.Kind() {
-			case reflect.Int:
-				exampleTag, _ = strconv.Atoi(exampleStrTag)
-			default:
-				exampleTag = exampleStrTag
-
-			}
-
-			pathParam := openapi3.NewPathParameter(nameTag)
-			pathParam.Description = descTag
-			pathParam.Example = exampleTag
-
+		for _, pathParam := range pathParams {
 			params = append(params, &openapi3.ParameterRef{
 				Value: pathParam,
 			})
 		}
+	}
+	return params, nil
+}
+
+func createParamsWithReflection(structPtr interface{}, inParam string, forceRequired bool) ([]*openapi3.Parameter, error) {
+	v := reflect.ValueOf(structPtr).Elem()
+	if !v.CanAddr() {
+		return nil, fmt.Errorf("item must be a pointer")
+	}
+
+	params := []*openapi3.Parameter{}
+	for i := 0; i < v.NumField(); i++ {
+		typeField := v.Type().Field(i)
+		docrouterTag, found := typeField.Tag.Lookup("docrouter")
+		if !found {
+			// field doesn't have a docrouter tag
+			continue
+		}
+		// fieldName := typeField.Name
+		nameTag, _ := tagLookup("name", docrouterTag)
+		descTag, _ := tagLookup("desc", docrouterTag)
+		exampleStrTag, _ := tagLookup("example", docrouterTag)
+
+		var exampleTag interface{}
+		switch typeField.Type.Kind() {
+		case reflect.Int:
+			exampleTag, _ = strconv.Atoi(exampleStrTag)
+		default:
+			exampleTag = exampleStrTag
+		}
+
+		required := true
+		if !forceRequired {
+			// todo parse required from tag
+		}
+
+		params = append(params, &openapi3.Parameter{
+			Name:        nameTag,
+			Description: descTag,
+			Example:     exampleTag,
+			In:          inParam,
+			Required:    required,
+		})
 	}
 	return params, nil
 }
