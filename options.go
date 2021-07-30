@@ -1,4 +1,4 @@
-package docserver
+package docrouter
 
 type Options struct {
 	Title   string

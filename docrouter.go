@@ -1,4 +1,4 @@
-package docserver
+package docrouter
 
 import (
 	"fmt"
@@ -51,11 +51,16 @@ func (srv *Router) AddRoute(route Route) error {
 }
 
 func (srv *Router) addRouteToDoc(route *Route) error {
+	params, err := route.openAPI3Params()
+	if err != nil {
+		return fmt.Errorf("create route params: %w", err)
+	}
 	for _, method := range route.Methods {
 		operation := openapi3.Operation{
 			Summary:     route.Summary,
 			Description: route.Description,
 			OperationID: uniqueOperationID(route),
+			Parameters:  params,
 			Responses:   openapi3.NewResponses(),
 		}
 		srv.docRoot.AddOperation(route.Path, method, &operation)
