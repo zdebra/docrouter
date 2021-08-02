@@ -14,7 +14,7 @@ func TestRoute(t *testing.T) {
 		t.Run("path", func(t *testing.T) {
 
 			type MyExamplePathParam struct {
-				StarID int    `docrouter:"name:starId;desc:Star identifier in CommonMark syntax. This can be potentially issue for longer descriptions.; example: 5"`
+				StarID int    `docrouter:"name:starId;desc:Star identifier in CommonMark syntax. This can be potentially issue for longer descriptions.; example: 5; schemaMin: 3"`
 				Color  string `docrouter:"name:color;desc:This is string value.; example: Ciao!"`
 			}
 
@@ -30,6 +30,10 @@ func TestRoute(t *testing.T) {
 			assert.Equal(t, "Star identifier in CommonMark syntax. This can be potentially issue for longer descriptions.", starParam.Description)
 			assert.Equal(t, 5, starParam.Example)
 			assert.True(t, starParam.Required)
+			require.NotNil(t, starParam.Schema)
+			require.NotNil(t, starParam.Schema.Value)
+			assert.Equal(t, float64(3), *starParam.Schema.Value.Min)
+			assert.Equal(t, "integer", starParam.Schema.Value.Type)
 
 			colorParam := oaParams.GetByInAndName(openapi3.ParameterInPath, "color")
 			require.NotNil(t, colorParam)
@@ -37,6 +41,9 @@ func TestRoute(t *testing.T) {
 			assert.Equal(t, "This is string value.", colorParam.Description)
 			assert.Equal(t, "Ciao!", colorParam.Example)
 			assert.True(t, colorParam.Required)
+			require.NotNil(t, colorParam.Schema)
+			require.NotNil(t, colorParam.Schema.Value)
+			assert.Equal(t, "string", colorParam.Schema.Value.Type)
 		})
 
 		t.Run("query", func(t *testing.T) {
@@ -57,6 +64,9 @@ func TestRoute(t *testing.T) {
 			assert.Equal(t, "Star identifier in CommonMark syntax. This can be potentially issue for longer descriptions.", starParam.Description)
 			assert.Equal(t, 5, starParam.Example)
 			assert.False(t, starParam.Required)
+			require.NotNil(t, starParam.Schema)
+			require.NotNil(t, starParam.Schema.Value)
+			assert.Equal(t, "integer", starParam.Schema.Value.Type)
 
 			potatoParam := oaParams.GetByInAndName(openapi3.ParameterInQuery, "potato")
 			require.NotNil(t, potatoParam)
@@ -64,6 +74,9 @@ func TestRoute(t *testing.T) {
 			assert.Equal(t, "This is bool!", potatoParam.Description)
 			assert.Equal(t, true, potatoParam.Example)
 			assert.True(t, potatoParam.Required)
+			require.NotNil(t, potatoParam.Schema)
+			require.NotNil(t, potatoParam.Schema.Value)
+			assert.Equal(t, "boolean", potatoParam.Schema.Value.Type)
 		})
 	})
 }

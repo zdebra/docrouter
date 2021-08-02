@@ -35,6 +35,11 @@ func TestDocServer(t *testing.T) {
 		x, y, z string
 	}
 
+	type MyExampleQueryParam struct {
+		StarID int  `docrouter:"name:starId;desc:Star identifier in CommonMark syntax. This can be potentially issue for longer descriptions.; example: 5; required: false; schemaMin: 3"`
+		Potato bool `docrouter:"name:potato;desc: This is bool!; example: true; required: true"`
+	}
+
 	const expectedHandlerOutput = "Hello star!"
 
 	err := server.AddRoute(Route{
@@ -42,7 +47,7 @@ func TestDocServer(t *testing.T) {
 		Methods: []string{http.MethodGet},
 		// RequestBody:  myRequest{},
 		// ResponseBody: myResponse{},
-		// QueryParams:  myQueryParams{},
+		QueryParams: &MyExampleQueryParam{},
 		// HeaderParams: myHeaderParams{},
 		// PathParams:   myPathParams{},
 		Summary: "Get All Stars",

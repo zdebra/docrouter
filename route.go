@@ -75,8 +75,10 @@ func createParamsWithReflection(structPtr interface{}, inParam string, forceRequ
 		descTag, _ := tagLookup("desc", docrouterTag)
 		exampleStrTag, _ := tagLookup("example", docrouterTag)
 		requiredStrTag, _ := tagLookup("required", docrouterTag)
+		schemaMinStrTag, _ := tagLookup("schemaMin", docrouterTag)
 
 		var exampleTag interface{}
+		var schemaType string
 		switch typeField.Type.Kind() {
 		case reflect.Int:
 			x, err := strconv.Atoi(exampleStrTag)
@@ -84,14 +86,17 @@ func createParamsWithReflection(structPtr interface{}, inParam string, forceRequ
 				return nil, fmt.Errorf("invalid int value for field %q, tag: `example`: %v", fieldName, err)
 			}
 			exampleTag = x
+			schemaType = "integer"
 		case reflect.Bool:
 			x, err := strconv.ParseBool(exampleStrTag)
 			if err != nil {
 				return nil, fmt.Errorf("invalid bool value for field %q, tag: `example`: %v", fieldName, err)
 			}
 			exampleTag = x
+			schemaType = "boolean"
 		default:
 			exampleTag = exampleStrTag
+			schemaType = "string"
 		}
 
 		required := true
@@ -103,15 +108,38 @@ func createParamsWithReflection(structPtr interface{}, inParam string, forceRequ
 			required = x
 		}
 
+		schemaFromTag, err := schemaFromTag(schemaMinStrTag, schemaType)
+		if err != nil {
+			return nil, fmt.Errorf("schemaFromTag: %w", err)
+		}
+
 		params = append(params, &openapi3.Parameter{
 			Name:        nameTag,
 			Description: descTag,
 			Example:     exampleTag,
 			In:          inParam,
 			Required:    required,
+			Schema:      schemaFromTag,
 		})
 	}
 	return params, nil
+}
+
+// todo expand this logic to accept more schemas from tags
+func schemaFromTag(schemaMinTagValue string, schemaFieldType string) (*openapi3.SchemaRef, error) {
+	if schemaMinTagValue == "" {
+		return openapi3.NewSchemaRef("", &openapi3.Schema{
+			Type: schemaFieldType,
+		}), nil
+	}
+	fValue, err := strconv.ParseFloat(schemaMinTagValue, 64)
+	if err != nil {
+		return nil, fmt.Errorf("parsing float from %q: %v", schemaMinTagValue, err)
+	}
+	return openapi3.NewSchemaRef("", &openapi3.Schema{
+		Min:  &fValue,
+		Type: schemaFieldType,
+	}), nil
 }
 
 func tagLookup(fieldName, rawTag string) (string, bool) {
