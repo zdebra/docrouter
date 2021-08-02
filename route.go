@@ -57,65 +57,53 @@ func (r *Route) openAPI3Params() (openapi3.Parameters, error) {
 }
 
 func createParamsWithReflection(structPtr interface{}, inParam string, forceRequired bool) ([]*openapi3.Parameter, error) {
-	v := reflect.ValueOf(structPtr).Elem()
-	if !v.CanAddr() {
-		return nil, fmt.Errorf("item must be a pointer")
+	pParam, err := parseParameter(structPtr)
+	if err != nil {
+		return nil, fmt.Errorf("parsing param: %w", err)
 	}
 
 	params := []*openapi3.Parameter{}
-	for i := 0; i < v.NumField(); i++ {
-		typeField := v.Type().Field(i)
-		docrouterTag, found := typeField.Tag.Lookup("docrouter")
-		if !found {
-			// field doesn't have a docrouter tag
-			continue
-		}
-		fieldName := typeField.Name
-		nameTag, _ := tagLookup("name", docrouterTag)
-		descTag, _ := tagLookup("desc", docrouterTag)
-		exampleStrTag, _ := tagLookup("example", docrouterTag)
-		requiredStrTag, _ := tagLookup("required", docrouterTag)
-		schemaMinStrTag, _ := tagLookup("schemaMin", docrouterTag)
-
+	for _, tField := range pParam.fields {
+		fieldName := tField.name
 		var exampleTag interface{}
 		var schemaType string
-		switch typeField.Type.Kind() {
+		switch tField.kind {
 		case reflect.Int:
-			x, err := strconv.Atoi(exampleStrTag)
+			x, err := strconv.Atoi(tField.getTagExample())
 			if err != nil {
 				return nil, fmt.Errorf("invalid int value for field %q, tag: `example`: %v", fieldName, err)
 			}
 			exampleTag = x
 			schemaType = "integer"
 		case reflect.Bool:
-			x, err := strconv.ParseBool(exampleStrTag)
+			x, err := strconv.ParseBool(tField.getTagExample())
 			if err != nil {
 				return nil, fmt.Errorf("invalid bool value for field %q, tag: `example`: %v", fieldName, err)
 			}
 			exampleTag = x
 			schemaType = "boolean"
 		default:
-			exampleTag = exampleStrTag
+			exampleTag = tField.getTagExample()
 			schemaType = "string"
 		}
 
 		required := true
 		if !forceRequired {
-			x, err := strconv.ParseBool(requiredStrTag)
+			x, err := strconv.ParseBool(tField.getTagRequired())
 			if err != nil {
 				return nil, fmt.Errorf("invalid bool value for field %q, tag: `required`: %v", fieldName, err)
 			}
 			required = x
 		}
 
-		schemaFromTag, err := schemaFromTag(schemaMinStrTag, schemaType)
+		schemaFromTag, err := schemaFromTag(tField.getTagSchemaMin(), schemaType)
 		if err != nil {
 			return nil, fmt.Errorf("schemaFromTag: %w", err)
 		}
 
 		params = append(params, &openapi3.Parameter{
-			Name:        nameTag,
-			Description: descTag,
+			Name:        tField.getTagName(),
+			Description: tField.getTagDesc(),
 			Example:     exampleTag,
 			In:          inParam,
 			Required:    required,
