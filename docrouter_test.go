@@ -77,4 +77,9 @@ func TestDocServer(t *testing.T) {
 	doc, err := server.docRoot.MarshalJSON()
 	require.NoError(t, err)
 	fmt.Println(string(doc))
+
+
+	notFoundresp, err := http.Get(ts.URL + "/knock-knock")
+	require.NoError(t, err)
+	assert.Equal(t, http.StatusNotFound, notFoundresp.StatusCode)
 }
