@@ -14,9 +14,9 @@ func TestDecodeQueryParams(t *testing.T) {
 
 	server := New(DefaultOptions)
 
-	type MyExampleQueryParam struct {
-		StarID int  `docrouter:"name:starid;desc: This is int!; example: 5; required: false; schemaMin: 3"`
-		Potato bool `docrouter:"name:potato;desc: This is bool!; example: true; required: true"`
+	type MyParameters struct {
+		StarID int  `docrouter:"name:starid; kind:query; desc: This is int!; example: 5; required: false; schemaMin: 3"`
+		Potato bool `docrouter:"name:potato; kind:query; desc: This is bool!; example: true; required: true"`
 	}
 
 	const (
@@ -27,11 +27,11 @@ func TestDecodeQueryParams(t *testing.T) {
 	err := server.AddRoute(Route{
 		Path:       "/example-query-param",
 		Methods:    []string{http.MethodGet},
-		Parameters: &MyExampleQueryParam{},
+		Parameters: &MyParameters{},
 		Summary:    "Parses query params",
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			var queryParams MyExampleQueryParam
-			if err := DecodeQueryParams(&queryParams, r); err != nil {
+			var queryParams MyParameters
+			if err := DecodeParams(&queryParams, r); err != nil {
 				t.Log("decode query params error", err.Error())
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return

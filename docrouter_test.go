@@ -15,7 +15,7 @@ import (
 func TestDocServer(t *testing.T) {
 	router := New(DefaultOptions)
 
-	type MyExampleQueryParam struct {
+	type MyParameters struct {
 		StarID int  `docrouter:"name:starId;desc:Star identifier in CommonMark syntax. This can be potentially issue for longer descriptions.; example: 5; required: false; schemaMin: 3"`
 		Potato bool `docrouter:"name:potato;desc: This is bool!; example: true; required: true"`
 	}
@@ -25,7 +25,7 @@ func TestDocServer(t *testing.T) {
 	err := router.AddRoute(Route{
 		Path:       "/stars",
 		Methods:    []string{http.MethodGet},
-		Parameters: &MyExampleQueryParam{},
+		Parameters: &MyParameters{},
 		Summary:    "Get All Stars",
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprint(w, expectedHandlerOutput)

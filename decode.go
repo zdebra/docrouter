@@ -5,9 +5,11 @@ import (
 	"net/http"
 	"reflect"
 	"strconv"
+
+	"github.com/getkin/kin-openapi/openapi3"
 )
 
-func DecodeQueryParams(structPtr interface{}, req *http.Request) error {
+func DecodeParams(structPtr interface{}, req *http.Request) error {
 	if req.URL == nil {
 		return fmt.Errorf("invalid request - req.URL is nil")
 	}
@@ -24,12 +26,19 @@ func DecodeQueryParams(structPtr interface{}, req *http.Request) error {
 	}
 
 	for _, tField := range pParam.fields {
-		queryParamName := tField.getTagName()
-		if queryParamName == "" {
+		paramName := tField.getTagName()
+		if paramName == "" {
 			continue
 		}
 
-		valueFromQuery := req.URL.Query().Get(queryParamName)
+		valueStr := ""
+		switch tField.getTagKind() {
+		case openapi3.ParameterInQuery:
+			valueStr = req.URL.Query().Get(paramName)
+		default:
+			return fmt.Errorf("paramter kind %q not supported", tField.getTagKind())
+		}
+
 		structField := sElem.FieldByName(tField.name)
 		if !structField.IsValid() {
 			return fmt.Errorf("invalid field name %q", tField.name)
@@ -41,15 +50,15 @@ func DecodeQueryParams(structPtr interface{}, req *http.Request) error {
 
 		switch structField.Kind() {
 		case reflect.Int:
-			intVal, err := strconv.Atoi(valueFromQuery)
+			intVal, err := strconv.Atoi(valueStr)
 			if err != nil {
-				return fmt.Errorf("converting %q to int: %v", valueFromQuery, err)
+				return fmt.Errorf("converting %q to int: %v", valueStr, err)
 			}
 			structField.SetInt(int64(intVal))
 		case reflect.Bool:
-			boolVal, err := strconv.ParseBool(valueFromQuery)
+			boolVal, err := strconv.ParseBool(valueStr)
 			if err != nil {
-				return fmt.Errorf("converting %q to bool: %v", valueFromQuery, err)
+				return fmt.Errorf("converting %q to bool: %v", valueStr, err)
 			}
 			structField.SetBool(boolVal)
 		}
