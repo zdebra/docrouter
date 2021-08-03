@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestDecodeQueryParams(t *testing.T) {
+func TestDecodeParams(t *testing.T) {
 
 	server := New(DefaultOptions)
 
@@ -25,19 +25,19 @@ func TestDecodeQueryParams(t *testing.T) {
 	)
 
 	err := server.AddRoute(Route{
-		Path:       "/example-query-param",
+		Path:       "/example-param",
 		Methods:    []string{http.MethodGet},
 		Parameters: &MyParameters{},
-		Summary:    "Parses query params",
+		Summary:    "Parses input params",
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			var queryParams MyParameters
-			if err := DecodeParams(&queryParams, r); err != nil {
+			var inputParams MyParameters
+			if err := DecodeParams(&inputParams, r); err != nil {
 				t.Log("decode query params error", err.Error())
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			}
-			assert.Equal(t, expectedStarID, queryParams.StarID)
-			assert.Equal(t, expectedPotato, queryParams.Potato)
+			assert.Equal(t, expectedStarID, inputParams.StarID)
+			assert.Equal(t, expectedPotato, inputParams.Potato)
 		}),
 	})
 	require.NoError(t, err)
@@ -45,7 +45,7 @@ func TestDecodeQueryParams(t *testing.T) {
 	ts := httptest.NewServer(server.muxRouter)
 	defer ts.Close()
 
-	resp, err := http.Get(ts.URL + fmt.Sprintf("/example-query-param?starid=%d&potato=%t", expectedStarID, expectedPotato))
+	resp, err := http.Get(ts.URL + fmt.Sprintf("/example-param?starid=%d&potato=%t", expectedStarID, expectedPotato))
 	require.NoError(t, err)
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 
