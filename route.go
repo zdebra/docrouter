@@ -10,6 +10,9 @@ import (
 	"github.com/getkin/kin-openapi/openapi3"
 )
 
+// Route collects all the information for handler and documentation generator.
+//
+// The router matches the handler based on defined Path and Methods only.
 type Route struct {
 	Path         string
 	Methods      []string
@@ -28,32 +31,33 @@ type Route struct {
 }
 
 func (r *Route) openAPI3Params() (openapi3.Parameters, error) {
-	paramsKinds := []struct {
+	paramKinds := map[string]struct {
 		structPtr     interface{}
-		kind          string
 		forceRequired bool
 	}{
-		{
+		openapi3.ParameterInPath: {
 			structPtr:     r.PathParams,
-			kind:          openapi3.ParameterInPath,
 			forceRequired: true,
 		},
-		{
+		openapi3.ParameterInQuery: {
 			structPtr:     r.QueryParams,
-			kind:          openapi3.ParameterInQuery,
+			forceRequired: false,
+		},
+		openapi3.ParameterInHeader: {
+			structPtr:     r.HeaderParams,
 			forceRequired: false,
 		},
 	}
 
 	params := openapi3.Parameters{}
-	for _, param := range paramsKinds {
+	for paramKind, param := range paramKinds {
 		if param.structPtr == nil {
 			continue
 		}
 
-		reflectedParams, err := createParamsWithReflection(param.structPtr, param.kind, param.forceRequired)
+		reflectedParams, err := createParamsWithReflection(param.structPtr, paramKind, param.forceRequired)
 		if err != nil {
-			return nil, fmt.Errorf("create %s params: %w", param.kind, err)
+			return nil, fmt.Errorf("create %s params: %w", paramKind, err)
 		}
 
 		for _, rParam := range reflectedParams {

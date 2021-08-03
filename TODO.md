@@ -12,10 +12,12 @@ Golang router with OpenAPI specification built-in.
 
 - [ ] Support Source of truth is code use-case
   - [x] router is created with handlers along with required metadata for OpenAPI specification
-  - [x] generate doc for QueryParams with code reflection
-  - [x] generate doc for PathParams with code reflection
-  - [ ] generate doc for CookieParams with code reflection
-  - [ ] generate doc for HeadersParams with code reflection
+  - [ ] Input Params
+    - [x] generate doc for QueryParams with code reflection
+    - [x] generate doc for PathParams with code reflection
+    - [ ] generate doc for CookieParams with code reflection
+    - [x] generate doc for HeadersParams with code reflection
+    - [ ] support all OpenAPI types
   - [ ] generate doc for Request with code reflection
   - [ ] generate doc for Response(s) with code reflection
   - [ ] all OpenAPI types are supported

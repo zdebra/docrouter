@@ -78,5 +78,31 @@ func TestRoute(t *testing.T) {
 			require.NotNil(t, potatoParam.Schema.Value)
 			assert.Equal(t, "boolean", potatoParam.Schema.Value.Type)
 		})
+
+		t.Run("headers", func(t *testing.T) {
+			type MyExampleHeadersParam struct {
+				StarName string `docrouter:"name:Star-Name;desc: This is star name header param!; example: Sun; required: true"`
+			}
+
+			r := Route{
+				HeaderParams: &MyExampleHeadersParam{},
+			}
+
+			oaParams, err := r.openAPI3Params()
+			require.NoError(t, err)
+			starParam := oaParams.GetByInAndName(openapi3.ParameterInHeader, "Star-Name")
+			require.NotNil(t, starParam)
+			assert.Equal(t, "Star-Name", starParam.Name)
+			assert.Equal(t, "This is star name header param!", starParam.Description)
+			assert.Equal(t, "Sun", starParam.Example)
+			assert.True(t, starParam.Required)
+			require.NotNil(t, starParam.Schema)
+			require.NotNil(t, starParam.Schema.Value)
+			assert.Equal(t, "string", starParam.Schema.Value.Type)
+
+			t.Run("not-allowed names", func(t *testing.T) {
+				// todo: Content-Type, Accept, Authorization https://swagger.io/docs/specification/describing-parameters/#header-parameters
+			})
+		})
 	})
 }
