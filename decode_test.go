@@ -20,6 +20,7 @@ func TestDecodeParams(t *testing.T) {
 		Potato     bool   `docrouter:"name: potato; kind: query; desc: This is bool!; example: true; required: true"`
 		FishName   string `docrouter:"name: fishName; kind: path"`
 		VisitCount int    `docrouter:"name: VISIT_COUNT; kind: cookie"`
+		Color      string `docrouter:"name: Color; kind: header"`
 	}
 
 	const (
@@ -27,6 +28,7 @@ func TestDecodeParams(t *testing.T) {
 		expectedPotato     = true
 		expectedFishName   = "blump"
 		expectedVisitCount = 999_999_999
+		expectedColor      = "purple"
 	)
 
 	err := server.AddRoute(Route{
@@ -45,6 +47,7 @@ func TestDecodeParams(t *testing.T) {
 			assert.Equal(t, expectedPotato, inputParams.Potato)
 			assert.Equal(t, expectedFishName, inputParams.FishName)
 			assert.Equal(t, expectedVisitCount, inputParams.VisitCount)
+			assert.Equal(t, expectedColor, inputParams.Color)
 		}),
 	})
 	require.NoError(t, err)
@@ -60,6 +63,8 @@ func TestDecodeParams(t *testing.T) {
 		Name:  "VISIT_COUNT",
 		Value: strconv.Itoa(expectedVisitCount),
 	})
+
+	req.Header.Set("Color", expectedColor)
 
 	resp, err := http.DefaultClient.Do(req)
 	require.NoError(t, err)

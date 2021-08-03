@@ -57,6 +57,8 @@ func strValueFromRequest(paramName, kind string, req *http.Request) (string, err
 			return "", nil
 		}
 		return c.Value, nil
+	case openapi3.ParameterInHeader:
+		return req.Header.Get(paramName), nil
 	default:
 		return "", fmt.Errorf("paramter kind %q not supported", kind)
 	}

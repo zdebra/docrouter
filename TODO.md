@@ -30,8 +30,8 @@ Golang router with OpenAPI specification built-in.
   - [ ] Decode runtime helpers
     - [x] DecodeQueryParams runtime helper
     - [x] DecodePathParams runtime helper
-    - [] DecodeHeadersParams runtime helper
-    - [ ] DecodeCookiesParams runtime helper
+    - [x] DecodeHeadersParams runtime helper
+    - [x] DecodeCookiesParams runtime helper
     - [ ] all OpenAPI types are supported
   - [ ] optional runtime validation for requests based on OpenAPI schema
   - [ ] Route tags are available in runtime with a helper method
