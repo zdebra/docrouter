@@ -4,15 +4,15 @@ Golang router with OpenAPI specification built-in.
 
 ### Project Bootstrap
 
-- [✓] create TODO.md
+- [x] create TODO.md
 - [ ] create changelog https://keepachangelog.com/en/1.0.0/
 - [ ] first release
 
 ### Create Router instance
 
 - [ ] Support Source of truth is code use-case
-  - [✓] router is created with handlers along with required metadata for OpenAPI specification
-  - [✓] generate doc for QueryParams with code reflection
+  - [x] router is created with handlers along with required metadata for OpenAPI specification
+  - [x] generate doc for QueryParams with code reflection
   - [ ] generate doc for PathParams with code reflection
   - [ ] generate doc for CookieParams with code reflection
   - [ ] generate doc for HeadersParams with code reflection
@@ -25,7 +25,7 @@ Golang router with OpenAPI specification built-in.
   - [ ] library provides runtime checks if all required handlers were provided
 - [ ] Router tooling
   - [ ] Decode runtime helpers
-    - [✓] DecodeQueryParams runtime helper
+    - [x] DecodeQueryParams runtime helper
     - [ ] DecodePathParams runtime helper
     - [ ] DecodeHeadersParams runtime helper
     - [ ] DecodeCookiesParams runtime helper
