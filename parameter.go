@@ -33,6 +33,7 @@ func parseParameter(structPtr interface{}) (parsedParameter, error) {
 		}
 		fieldName := typeField.Name
 		keys := []string{
+			"kind",
 			"name",
 			"desc",
 			"example",
@@ -72,4 +73,8 @@ func (tf *taggedField) getTagName() string {
 
 func (tf *taggedField) getTagDesc() string {
 	return tf.parsedDocrouterTag["desc"]
+}
+
+func (tf *taggedField) getTagKind() string {
+	return tf.parsedDocrouterTag["kind"]
 }

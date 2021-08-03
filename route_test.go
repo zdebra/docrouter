@@ -14,12 +14,12 @@ func TestRoute(t *testing.T) {
 		t.Run("path", func(t *testing.T) {
 
 			type MyExamplePathParam struct {
-				StarID int    `docrouter:"name:starId;desc:Star identifier in CommonMark syntax. This can be potentially issue for longer descriptions.; example: 5; schemaMin: 3"`
-				Color  string `docrouter:"name:color;desc:This is string value.; example: Ciao!"`
+				StarID int    `docrouter:"name:starId; kind:path; desc:Star identifier in CommonMark syntax. This can be potentially issue for longer descriptions.; example: 5; schemaMin: 3"`
+				Color  string `docrouter:"name:color; kind:path; desc:This is string value.; example: Ciao!"`
 			}
 
 			r := Route{
-				PathParams: &MyExamplePathParam{},
+				Parameters: &MyExamplePathParam{},
 			}
 
 			oaParams, err := r.openAPI3Params()
@@ -48,12 +48,12 @@ func TestRoute(t *testing.T) {
 
 		t.Run("query", func(t *testing.T) {
 			type MyExampleQueryParam struct {
-				StarID int  `docrouter:"name:starId;desc:Star identifier in CommonMark syntax. This can be potentially issue for longer descriptions.; example: 5; required: false"`
-				Potato bool `docrouter:"name:potato;desc: This is bool!; example: true; required: true"`
+				StarID int  `docrouter:"name:starId; kind: query; desc:Star identifier in CommonMark syntax. This can be potentially issue for longer descriptions.; example: 5; required: false"`
+				Potato bool `docrouter:"name:potato; kind: query; desc: This is bool!; example: true; required: true"`
 			}
 
 			r := Route{
-				QueryParams: &MyExampleQueryParam{},
+				Parameters: &MyExampleQueryParam{},
 			}
 
 			oaParams, err := r.openAPI3Params()
@@ -81,11 +81,11 @@ func TestRoute(t *testing.T) {
 
 		t.Run("headers", func(t *testing.T) {
 			type MyExampleHeadersParam struct {
-				StarName string `docrouter:"name:Star-Name;desc: This is star name header param!; example: Sun; required: true"`
+				StarName string `docrouter:"name:Star-Name; kind: header; desc: This is star name header param!; example: Sun; required: true"`
 			}
 
 			r := Route{
-				HeaderParams: &MyExampleHeadersParam{},
+				Parameters: &MyExampleHeadersParam{},
 			}
 
 			oaParams, err := r.openAPI3Params()

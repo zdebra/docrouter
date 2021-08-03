@@ -23,14 +23,10 @@ func TestDocServer(t *testing.T) {
 	const expectedHandlerOutput = "Hello star!"
 
 	err := router.AddRoute(Route{
-		Path:    "/stars",
-		Methods: []string{http.MethodGet},
-		// RequestBody:  myRequest{},
-		// ResponseBody: myResponse{},
-		QueryParams: &MyExampleQueryParam{},
-		// HeaderParams: myHeaderParams{},
-		// PathParams:   myPathParams{},
-		Summary: "Get All Stars",
+		Path:       "/stars",
+		Methods:    []string{http.MethodGet},
+		Parameters: &MyExampleQueryParam{},
+		Summary:    "Get All Stars",
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprint(w, expectedHandlerOutput)
 		}),

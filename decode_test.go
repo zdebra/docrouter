@@ -25,10 +25,10 @@ func TestDecodeQueryParams(t *testing.T) {
 	)
 
 	err := server.AddRoute(Route{
-		Path:        "/example-query-param",
-		Methods:     []string{http.MethodGet},
-		QueryParams: &MyExampleQueryParam{},
-		Summary:     "Parses query params",
+		Path:       "/example-query-param",
+		Methods:    []string{http.MethodGet},
+		Parameters: &MyExampleQueryParam{},
+		Summary:    "Parses query params",
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			var queryParams MyExampleQueryParam
 			if err := DecodeQueryParams(&queryParams, r); err != nil {

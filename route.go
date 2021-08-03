@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/getkin/kin-openapi/openapi3"
+	validation "github.com/go-ozzo/ozzo-validation"
 )
 
 // Route collects all the information for handler and documentation generator.
@@ -18,9 +19,7 @@ type Route struct {
 	Methods      []string
 	RequestBody  interface{}
 	ResponseBody interface{}
-	QueryParams  interface{}
-	HeaderParams interface{}
-	PathParams   interface{}
+	Parameters   interface{}
 	Middlewares  []func(http.Handler) http.Handler
 	Handler      http.Handler
 
@@ -31,33 +30,11 @@ type Route struct {
 }
 
 func (r *Route) openAPI3Params() (openapi3.Parameters, error) {
-	paramKinds := map[string]struct {
-		structPtr     interface{}
-		forceRequired bool
-	}{
-		openapi3.ParameterInPath: {
-			structPtr:     r.PathParams,
-			forceRequired: true,
-		},
-		openapi3.ParameterInQuery: {
-			structPtr:     r.QueryParams,
-			forceRequired: false,
-		},
-		openapi3.ParameterInHeader: {
-			structPtr:     r.HeaderParams,
-			forceRequired: false,
-		},
-	}
-
 	params := openapi3.Parameters{}
-	for paramKind, param := range paramKinds {
-		if param.structPtr == nil {
-			continue
-		}
-
-		reflectedParams, err := createParamsWithReflection(param.structPtr, paramKind, param.forceRequired)
+	if r.Parameters != nil {
+		reflectedParams, err := createParamsWithReflection(r.Parameters)
 		if err != nil {
-			return nil, fmt.Errorf("create %s params: %w", paramKind, err)
+			return nil, fmt.Errorf("create params with reflection: %w", err)
 		}
 
 		for _, rParam := range reflectedParams {
@@ -69,7 +46,7 @@ func (r *Route) openAPI3Params() (openapi3.Parameters, error) {
 	return params, nil
 }
 
-func createParamsWithReflection(structPtr interface{}, inParam string, forceRequired bool) ([]*openapi3.Parameter, error) {
+func createParamsWithReflection(structPtr interface{}) ([]*openapi3.Parameter, error) {
 	pParam, err := parseParameter(structPtr)
 	if err != nil {
 		return nil, fmt.Errorf("parsing param: %w", err)
@@ -77,6 +54,23 @@ func createParamsWithReflection(structPtr interface{}, inParam string, forceRequ
 
 	params := []*openapi3.Parameter{}
 	for _, tField := range pParam.fields {
+		inParam := tField.getTagKind()
+		if err := validation.Validate(inParam,
+			validation.In(
+				openapi3.ParameterInPath,
+				openapi3.ParameterInQuery,
+				openapi3.ParameterInHeader,
+				openapi3.ParameterInCookie,
+			),
+		); err != nil {
+			return nil, fmt.Errorf("invalid parameter kind %q: %v", inParam, err)
+		}
+
+		forceRequired := false
+		if inParam == openapi3.ParameterInPath {
+			forceRequired = true
+		}
+
 		fieldName := tField.name
 		var exampleTag interface{}
 		var schemaType string
