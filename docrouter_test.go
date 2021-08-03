@@ -13,27 +13,7 @@ import (
 )
 
 func TestDocServer(t *testing.T) {
-	server := New(DefaultOptions)
-
-	type myRequest struct {
-		ID string `json:"id"`
-		// <here goes meta information to setup request validation, e.g. regular expression>
-		FavoriteColor string `json:"favoriteColor"`
-	}
-	type myResponse struct {
-		PotatoCount int `json:"potatoCount"`
-	}
-	type myQueryParams struct {
-		Limit int `json:"limit"`
-		// <validation info goes here as well>
-		Offset int `json:"offset"`
-	}
-	type myHeaderParams struct {
-		Authorization string
-	}
-	type myPathParams struct {
-		x, y, z string
-	}
+	router := New(DefaultOptions)
 
 	type MyExampleQueryParam struct {
 		StarID int  `docrouter:"name:starId;desc:Star identifier in CommonMark syntax. This can be potentially issue for longer descriptions.; example: 5; required: false; schemaMin: 3"`
@@ -42,7 +22,7 @@ func TestDocServer(t *testing.T) {
 
 	const expectedHandlerOutput = "Hello star!"
 
-	err := server.AddRoute(Route{
+	err := router.AddRoute(Route{
 		Path:    "/stars",
 		Methods: []string{http.MethodGet},
 		// RequestBody:  myRequest{},
@@ -57,14 +37,14 @@ func TestDocServer(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	server.muxRouter.Walk(func(route *mux.Route, router *mux.Router, ancestors []*mux.Route) error {
+	router.muxRouter.Walk(func(route *mux.Route, router *mux.Router, ancestors []*mux.Route) error {
 		methods, _ := route.GetMethods()
 		path, _ := route.GetPathTemplate()
 		fmt.Println("registered route", methods, path)
 		return nil
 	})
 
-	ts := httptest.NewServer(server.muxRouter)
+	ts := httptest.NewServer(router.muxRouter)
 	defer ts.Close()
 
 	resp, err := http.Get(ts.URL + "/stars")
@@ -74,10 +54,9 @@ func TestDocServer(t *testing.T) {
 	defer resp.Body.Close()
 	assert.Equal(t, expectedHandlerOutput, string(respBytes))
 
-	doc, err := server.docRoot.MarshalJSON()
+	doc, err := router.docRoot.MarshalJSON()
 	require.NoError(t, err)
 	fmt.Println(string(doc))
-
 
 	notFoundresp, err := http.Get(ts.URL + "/knock-knock")
 	require.NoError(t, err)
