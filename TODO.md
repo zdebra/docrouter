@@ -21,7 +21,7 @@ Golang router with OpenAPI specification built-in.
     - [ ] validate parameters in AddRoute func
   - [ ] generate doc for Request with code reflection
   - [ ] generate doc for Response(s) with code reflection
-  - [ ] all OpenAPI types are supported
+  - [ ] all OpenAPI types are supported 
   - [ ] all OpenAPI schema validations are supported
 - [ ] Support Source of truth is OpenAPI schema use-case
   - [ ] router is created with OpenAPI schema and handlers with mapping to the schema as input
