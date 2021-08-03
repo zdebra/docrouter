@@ -76,11 +76,13 @@ func createParamsWithReflection(structPtr interface{}) ([]*openapi3.Parameter, e
 		var schemaType string
 		switch tField.kind {
 		case reflect.Int:
-			x, err := strconv.Atoi(tField.getTagExample())
-			if err != nil {
-				return nil, fmt.Errorf("invalid int value for field %q, tag: `example`: %v", fieldName, err)
+			if exampleStrVal := tField.getTagExample(); exampleStrVal != "" {
+				x, err := strconv.Atoi(exampleStrVal)
+				if err != nil {
+					return nil, fmt.Errorf("invalid int value for field %q, tag: `example`: %v", fieldName, err)
+				}
+				exampleTag = x
 			}
-			exampleTag = x
 			schemaType = "integer"
 		case reflect.Bool:
 			x, err := strconv.ParseBool(tField.getTagExample())

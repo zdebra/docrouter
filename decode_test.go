@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -15,15 +16,17 @@ func TestDecodeParams(t *testing.T) {
 	server := New(DefaultOptions)
 
 	type MyParameters struct {
-		StarID   int    `docrouter:"name: starid; kind: query; desc: This is int!; example: 5; required: false; schemaMin: 3"`
-		Potato   bool   `docrouter:"name: potato; kind: query; desc: This is bool!; example: true; required: true"`
-		FishName string `docrouter:"name: fishName; kind: path"`
+		StarID     int    `docrouter:"name: starid; kind: query; desc: This is int!; example: 5; required: false; schemaMin: 3"`
+		Potato     bool   `docrouter:"name: potato; kind: query; desc: This is bool!; example: true; required: true"`
+		FishName   string `docrouter:"name: fishName; kind: path"`
+		VisitCount int    `docrouter:"name: VISIT_COUNT; kind: cookie"`
 	}
 
 	const (
-		expectedStarID   = 10
-		expectedPotato   = true
-		expectedFishName = "blump"
+		expectedStarID     = 10
+		expectedPotato     = true
+		expectedFishName   = "blump"
+		expectedVisitCount = 999_999_999
 	)
 
 	err := server.AddRoute(Route{
@@ -41,6 +44,7 @@ func TestDecodeParams(t *testing.T) {
 			assert.Equal(t, expectedStarID, inputParams.StarID)
 			assert.Equal(t, expectedPotato, inputParams.Potato)
 			assert.Equal(t, expectedFishName, inputParams.FishName)
+			assert.Equal(t, expectedVisitCount, inputParams.VisitCount)
 		}),
 	})
 	require.NoError(t, err)
@@ -48,7 +52,16 @@ func TestDecodeParams(t *testing.T) {
 	ts := httptest.NewServer(server.muxRouter)
 	defer ts.Close()
 
-	resp, err := http.Get(ts.URL + fmt.Sprintf("/example-param/%s?starid=%d&potato=%t", expectedFishName, expectedStarID, expectedPotato))
+	u := ts.URL + fmt.Sprintf("/example-param/%s?starid=%d&potato=%t", expectedFishName, expectedStarID, expectedPotato)
+	req, err := http.NewRequest(http.MethodGet, u, nil)
+	require.NoError(t, err)
+
+	req.AddCookie(&http.Cookie{
+		Name:  "VISIT_COUNT",
+		Value: strconv.Itoa(expectedVisitCount),
+	})
+
+	resp, err := http.DefaultClient.Do(req)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusOK, resp.StatusCode)
 

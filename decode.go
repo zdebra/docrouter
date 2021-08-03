@@ -51,6 +51,12 @@ func strValueFromRequest(paramName, kind string, req *http.Request) (string, err
 		return req.URL.Query().Get(paramName), nil
 	case openapi3.ParameterInPath:
 		return mux.Vars(req)[paramName], nil
+	case openapi3.ParameterInCookie:
+		c, err := req.Cookie(paramName)
+		if err != nil {
+			return "", nil
+		}
+		return c.Value, nil
 	default:
 		return "", fmt.Errorf("paramter kind %q not supported", kind)
 	}
