@@ -28,28 +28,37 @@ type Route struct {
 }
 
 func (r *Route) openAPI3Params() (openapi3.Parameters, error) {
-	params := openapi3.Parameters{}
-	if r.PathParams != nil {
-		pathParams, err := createParamsWithReflection(r.PathParams, openapi3.ParameterInPath, true)
-		if err != nil {
-			return nil, fmt.Errorf("create path params: %w", err)
-		}
-
-		for _, pathParam := range pathParams {
-			params = append(params, &openapi3.ParameterRef{
-				Value: pathParam,
-			})
-		}
+	paramsKinds := []struct {
+		structPtr     interface{}
+		kind          string
+		forceRequired bool
+	}{
+		{
+			structPtr:     r.PathParams,
+			kind:          openapi3.ParameterInPath,
+			forceRequired: true,
+		},
+		{
+			structPtr:     r.QueryParams,
+			kind:          openapi3.ParameterInQuery,
+			forceRequired: false,
+		},
 	}
-	if r.QueryParams != nil {
-		reflectedParams, err := createParamsWithReflection(r.QueryParams, openapi3.ParameterInQuery, false)
-		if err != nil {
-			return nil, fmt.Errorf("create query params: %w", err)
+
+	params := openapi3.Parameters{}
+	for _, param := range paramsKinds {
+		if param.structPtr == nil {
+			continue
 		}
 
-		for _, param := range reflectedParams {
+		reflectedParams, err := createParamsWithReflection(param.structPtr, param.kind, param.forceRequired)
+		if err != nil {
+			return nil, fmt.Errorf("create %s params: %w", param.kind, err)
+		}
+
+		for _, rParam := range reflectedParams {
 			params = append(params, &openapi3.ParameterRef{
-				Value: param,
+				Value: rParam,
 			})
 		}
 	}
