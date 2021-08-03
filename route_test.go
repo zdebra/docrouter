@@ -1,6 +1,7 @@
 package docrouter
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/getkin/kin-openapi/openapi3"
@@ -11,98 +12,89 @@ import (
 func TestRoute(t *testing.T) {
 
 	t.Run("params", func(t *testing.T) {
-		t.Run("path", func(t *testing.T) {
+		type MyParameters struct {
+			StarID   int    `docrouter:"name:starId; kind:path; desc:Star identifier in CommonMark syntax. This can be potentially issue for longer descriptions.; example: 5; schemaMin: 3"`
+			Color    string `docrouter:"name:color; kind:path; desc:This is string value.; example: Ciao!"`
+			Limit    int    `docrouter:"name:limit; kind: query; desc:Star limit; example: 93; required: false"`
+			Potato   bool   `docrouter:"name:potato; kind: query; desc: This is bool!; example: true; required: true"`
+			StarName string `docrouter:"name:Star-Name; kind: header; desc: This is star name header param!; example: Sun; required: true"`
+		}
 
-			type MyExamplePathParam struct {
-				StarID int    `docrouter:"name:starId; kind:path; desc:Star identifier in CommonMark syntax. This can be potentially issue for longer descriptions.; example: 5; schemaMin: 3"`
-				Color  string `docrouter:"name:color; kind:path; desc:This is string value.; example: Ciao!"`
-			}
+		r := Route{
+			Parameters: &MyParameters{},
+		}
 
-			r := Route{
-				Parameters: &MyExamplePathParam{},
-			}
+		oaParams, err := r.openAPI3Params()
+		require.NoError(t, err)
 
-			oaParams, err := r.openAPI3Params()
-			require.NoError(t, err)
-			starParam := oaParams.GetByInAndName(openapi3.ParameterInPath, "starId")
-			require.NotNil(t, starParam)
-			assert.Equal(t, "starId", starParam.Name)
-			assert.Equal(t, "Star identifier in CommonMark syntax. This can be potentially issue for longer descriptions.", starParam.Description)
-			assert.Equal(t, 5, starParam.Example)
-			assert.True(t, starParam.Required)
-			require.NotNil(t, starParam.Schema)
-			require.NotNil(t, starParam.Schema.Value)
-			assert.Equal(t, float64(3), *starParam.Schema.Value.Min)
-			assert.Equal(t, "integer", starParam.Schema.Value.Type)
+		tests := []struct {
+			kind     string
+			name     string
+			desc     string
+			example  interface{}
+			required bool
+			schema   *openapi3.Schema
+		}{
+			{
+				kind:     openapi3.ParameterInPath,
+				name:     "starId",
+				desc:     "Star identifier in CommonMark syntax. This can be potentially issue for longer descriptions.",
+				example:  5,
+				required: true,
+				schema:   openapi3.NewIntegerSchema().WithMin(3),
+			},
+			{
+				kind:     openapi3.ParameterInPath,
+				name:     "color",
+				desc:     "This is string value.",
+				example:  "Ciao!",
+				required: true,
+				schema:   openapi3.NewStringSchema(),
+			},
+			{
+				kind:     openapi3.ParameterInQuery,
+				name:     "limit",
+				desc:     "Star limit",
+				example:  93,
+				required: false,
+				schema:   openapi3.NewIntegerSchema(),
+			},
+			{
+				kind:     openapi3.ParameterInQuery,
+				name:     "potato",
+				desc:     "This is bool!",
+				example:  true,
+				required: true,
+				schema:   openapi3.NewBoolSchema(),
+			},
+			{
+				kind:     openapi3.ParameterInHeader,
+				name:     "Star-Name",
+				desc:     "This is star name header param!",
+				example:  "Sun",
+				required: true,
+				schema:   openapi3.NewStringSchema(),
+			},
+		}
 
-			colorParam := oaParams.GetByInAndName(openapi3.ParameterInPath, "color")
-			require.NotNil(t, colorParam)
-			assert.Equal(t, "color", colorParam.Name)
-			assert.Equal(t, "This is string value.", colorParam.Description)
-			assert.Equal(t, "Ciao!", colorParam.Example)
-			assert.True(t, colorParam.Required)
-			require.NotNil(t, colorParam.Schema)
-			require.NotNil(t, colorParam.Schema.Value)
-			assert.Equal(t, "string", colorParam.Schema.Value.Type)
-		})
-
-		t.Run("query", func(t *testing.T) {
-			type MyExampleQueryParam struct {
-				StarID int  `docrouter:"name:starId; kind: query; desc:Star identifier in CommonMark syntax. This can be potentially issue for longer descriptions.; example: 5; required: false"`
-				Potato bool `docrouter:"name:potato; kind: query; desc: This is bool!; example: true; required: true"`
-			}
-
-			r := Route{
-				Parameters: &MyExampleQueryParam{},
-			}
-
-			oaParams, err := r.openAPI3Params()
-			require.NoError(t, err)
-			starParam := oaParams.GetByInAndName(openapi3.ParameterInQuery, "starId")
-			require.NotNil(t, starParam)
-			assert.Equal(t, "starId", starParam.Name)
-			assert.Equal(t, "Star identifier in CommonMark syntax. This can be potentially issue for longer descriptions.", starParam.Description)
-			assert.Equal(t, 5, starParam.Example)
-			assert.False(t, starParam.Required)
-			require.NotNil(t, starParam.Schema)
-			require.NotNil(t, starParam.Schema.Value)
-			assert.Equal(t, "integer", starParam.Schema.Value.Type)
-
-			potatoParam := oaParams.GetByInAndName(openapi3.ParameterInQuery, "potato")
-			require.NotNil(t, potatoParam)
-			assert.Equal(t, "potato", potatoParam.Name)
-			assert.Equal(t, "This is bool!", potatoParam.Description)
-			assert.Equal(t, true, potatoParam.Example)
-			assert.True(t, potatoParam.Required)
-			require.NotNil(t, potatoParam.Schema)
-			require.NotNil(t, potatoParam.Schema.Value)
-			assert.Equal(t, "boolean", potatoParam.Schema.Value.Type)
-		})
-
-		t.Run("headers", func(t *testing.T) {
-			type MyExampleHeadersParam struct {
-				StarName string `docrouter:"name:Star-Name; kind: header; desc: This is star name header param!; example: Sun; required: true"`
-			}
-
-			r := Route{
-				Parameters: &MyExampleHeadersParam{},
-			}
-
-			oaParams, err := r.openAPI3Params()
-			require.NoError(t, err)
-			starParam := oaParams.GetByInAndName(openapi3.ParameterInHeader, "Star-Name")
-			require.NotNil(t, starParam)
-			assert.Equal(t, "Star-Name", starParam.Name)
-			assert.Equal(t, "This is star name header param!", starParam.Description)
-			assert.Equal(t, "Sun", starParam.Example)
-			assert.True(t, starParam.Required)
-			require.NotNil(t, starParam.Schema)
-			require.NotNil(t, starParam.Schema.Value)
-			assert.Equal(t, "string", starParam.Schema.Value.Type)
-
-			t.Run("not-allowed names", func(t *testing.T) {
-				// todo: Content-Type, Accept, Authorization https://swagger.io/docs/specification/describing-parameters/#header-parameters
+		for _, test := range tests {
+			testName := fmt.Sprintf("%s/%s", test.kind, test.name)
+			t.Run(testName, func(t *testing.T) {
+				oaParam := oaParams.GetByInAndName(test.kind, test.name)
+				require.NotNil(t, oaParam)
+				assert.Equal(t, test.name, oaParam.Name)
+				assert.Equal(t, test.desc, oaParam.Description)
+				assert.Equal(t, test.example, oaParam.Example)
+				assert.Equal(t, test.required, oaParam.Required)
+				require.NotNil(t, oaParam.Schema)
+				require.NotNil(t, oaParam.Schema.Value)
+				require.Equal(t, test.schema, oaParam.Schema.Value)
 			})
+		}
+
+		t.Run("not-allowed header names", func(t *testing.T) {
+			// todo: Content-Type, Accept, Authorization https://swagger.io/docs/specification/describing-parameters/#header-parameters
+
 		})
 	})
 }
