@@ -96,11 +96,14 @@ func createParamsWithReflection(structPtr interface{}) ([]*openapi3.Parameter, e
 
 		required := true
 		if !forceRequired {
-			x, err := strconv.ParseBool(tField.getTagRequired())
-			if err != nil {
-				return nil, fmt.Errorf("invalid bool value for field %q, tag: `required`: %v", fieldName, err)
+			required = false
+			if tField.getTagRequired() != "" {
+				x, err := strconv.ParseBool(tField.getTagRequired())
+				if err != nil {
+					return nil, fmt.Errorf("invalid bool value for field %q, tag: `required`: %v", fieldName, err)
+				}
+				required = x
 			}
-			required = x
 		}
 
 		schemaFromTag, err := schemaFromTag(tField.getTagSchemaMin(), schemaType)

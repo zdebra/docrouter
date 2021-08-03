@@ -15,7 +15,7 @@ Golang router with OpenAPI specification built-in.
   - [ ] Input Params
     - [x] generate doc for QueryParams with code reflection
     - [x] generate doc for PathParams with code reflection
-    - [ ] generate doc for CookieParams with code reflection
+    - [x] generate doc for CookieParams with code reflection
     - [x] generate doc for HeadersParams with code reflection
     - [ ] support all OpenAPI types
     - [ ] validate parameters in AddRoute func

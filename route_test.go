@@ -13,11 +13,12 @@ func TestRoute(t *testing.T) {
 
 	t.Run("params", func(t *testing.T) {
 		type MyParameters struct {
-			StarID   int    `docrouter:"name:starId; kind:path; desc:Star identifier in CommonMark syntax. This can be potentially issue for longer descriptions.; example: 5; schemaMin: 3"`
-			Color    string `docrouter:"name:color; kind:path; desc:This is string value.; example: Ciao!"`
-			Limit    int    `docrouter:"name:limit; kind: query; desc:Star limit; example: 93; required: false"`
-			Potato   bool   `docrouter:"name:potato; kind: query; desc: This is bool!; example: true; required: true"`
-			StarName string `docrouter:"name:Star-Name; kind: header; desc: This is star name header param!; example: Sun; required: true"`
+			StarID    int    `docrouter:"name:starId; kind:path; desc:Star identifier in CommonMark syntax. This can be potentially issue for longer descriptions.; example: 5; schemaMin: 3"`
+			Color     string `docrouter:"name:color; kind:path; desc:This is string value.; example: Ciao!"`
+			Limit     int    `docrouter:"name:limit; kind: query; desc:Star limit; example: 93; required: false"`
+			Potato    bool   `docrouter:"name:potato; kind: query; desc: This is bool!; example: true; required: true"`
+			StarName  string `docrouter:"name:Star-Name; kind: header; desc: This is star name header param!; example: Sun; required: true"`
+			SessionID string `docrouter:"name:sessionId; kind: cookie; desc: session identifier; example: bananas"`
 		}
 
 		r := Route{
@@ -75,6 +76,14 @@ func TestRoute(t *testing.T) {
 				required: true,
 				schema:   openapi3.NewStringSchema(),
 			},
+			{
+				kind:     openapi3.ParameterInCookie,
+				name:     "sessionId",
+				desc:     "session identifier",
+				example:  "bananas",
+				required: false,
+				schema:   openapi3.NewStringSchema(),
+			},
 		}
 
 		for _, test := range tests {
@@ -93,8 +102,7 @@ func TestRoute(t *testing.T) {
 		}
 
 		t.Run("not-allowed header names", func(t *testing.T) {
-			// todo: Content-Type, Accept, Authorization https://swagger.io/docs/specification/describing-parameters/#header-parameters
-
+			t.Skip("todo: not-allowed header names Content-Type, Accept, Authorization https://swagger.io/docs/specification/describing-parameters/#header-parameters")
 		})
 	})
 }
