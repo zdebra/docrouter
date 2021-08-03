@@ -15,17 +15,19 @@ func TestDecodeParams(t *testing.T) {
 	server := New(DefaultOptions)
 
 	type MyParameters struct {
-		StarID int  `docrouter:"name:starid; kind:query; desc: This is int!; example: 5; required: false; schemaMin: 3"`
-		Potato bool `docrouter:"name:potato; kind:query; desc: This is bool!; example: true; required: true"`
+		StarID   int    `docrouter:"name: starid; kind: query; desc: This is int!; example: 5; required: false; schemaMin: 3"`
+		Potato   bool   `docrouter:"name: potato; kind: query; desc: This is bool!; example: true; required: true"`
+		FishName string `docrouter:"name: fishName; kind: path"`
 	}
 
 	const (
-		expectedStarID = 10
-		expectedPotato = true
+		expectedStarID   = 10
+		expectedPotato   = true
+		expectedFishName = "blump"
 	)
 
 	err := server.AddRoute(Route{
-		Path:       "/example-param",
+		Path:       "/example-param/{fishName}",
 		Methods:    []string{http.MethodGet},
 		Parameters: &MyParameters{},
 		Summary:    "Parses input params",
@@ -38,6 +40,7 @@ func TestDecodeParams(t *testing.T) {
 			}
 			assert.Equal(t, expectedStarID, inputParams.StarID)
 			assert.Equal(t, expectedPotato, inputParams.Potato)
+			assert.Equal(t, expectedFishName, inputParams.FishName)
 		}),
 	})
 	require.NoError(t, err)
@@ -45,8 +48,8 @@ func TestDecodeParams(t *testing.T) {
 	ts := httptest.NewServer(server.muxRouter)
 	defer ts.Close()
 
-	resp, err := http.Get(ts.URL + fmt.Sprintf("/example-param?starid=%d&potato=%t", expectedStarID, expectedPotato))
+	resp, err := http.Get(ts.URL + fmt.Sprintf("/example-param/%s?starid=%d&potato=%t", expectedFishName, expectedStarID, expectedPotato))
 	require.NoError(t, err)
-	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	require.Equal(t, http.StatusOK, resp.StatusCode)
 
 }
