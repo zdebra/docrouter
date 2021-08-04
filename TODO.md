@@ -23,9 +23,6 @@ Golang router with OpenAPI specification built-in.
   - [ ] generate doc for Response(s) with code reflection
   - [ ] all OpenAPI types are supported
   - [ ] all OpenAPI schema validations are supported
-- [ ] Support Source of truth is OpenAPI schema use-case
-  - [ ] router is created with OpenAPI schema and handlers with mapping to the schema as input
-  - [ ] library provides runtime checks if all required handlers were provided
 - [ ] Router tooling
   - [ ] Decode runtime helpers
     - [x] DecodeQueryParams runtime helper
@@ -35,3 +32,4 @@ Golang router with OpenAPI specification built-in.
     - [ ] all OpenAPI types are supported
   - [ ] optional runtime validation for requests based on OpenAPI schema
   - [ ] Route tags are available in runtime with a helper method
+- [ ] Try to support more routers than gorilla (chi, echo)
