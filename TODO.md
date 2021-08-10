@@ -34,4 +34,3 @@ Golang router with OpenAPI specification built-in.
     - [ ] all OpenAPI types are supported
   - [ ] optional runtime validation for requests based on OpenAPI schema
   - [ ] Route tags are available in runtime with a helper method
-- [ ] Try to support more routers than gorilla (chi, echo)
