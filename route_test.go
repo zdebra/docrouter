@@ -105,4 +105,19 @@ func TestRoute(t *testing.T) {
 			t.Skip("todo: not-allowed header names Content-Type, Accept, Authorization https://swagger.io/docs/specification/describing-parameters/#header-parameters")
 		})
 	})
+
+	// t.Run("request", func(t *testing.T) {
+	// 	type MyRequestBody struct {
+	// 		Name                     string `docrouter:"name:???"`
+	// 		SurfaceTemperatureKelvin int
+	// 		Mass                     float64
+	// 		OlderThanSun             bool
+	// 	}
+	// 	r := Route{
+	// 		RequestBody: &MyRequestBody{},
+	// 	}
+
+	// 	oaParams, err := r.openAPI3Params()
+	// 	require.NoError(t, err)
+	// })
 }
