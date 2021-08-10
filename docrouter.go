@@ -2,6 +2,7 @@ package docrouter
 
 import (
 	"fmt"
+	"net/http"
 	"strings"
 
 	"github.com/getkin/kin-openapi/openapi3"
@@ -83,13 +84,21 @@ func (*Router) validateRoute(route *Route) error {
 }
 
 func (srv *Router) registerHandler(route *Route) error {
-	middlewareChain := alice.New()
-	for _, mw := range route.Middlewares {
-		middlewareChain = middlewareChain.Append(mw)
-	}
-	h := middlewareChain.Then(route.Handler)
+	h := handlerWithMiddlewares(route.Handler, route.Middlewares)
 	srv.muxRouter.
 		Handle(route.Path, h).
 		Methods(route.Methods...)
 	return nil
+}
+
+func (srv *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	srv.muxRouter.ServeHTTP(w, r)
+}
+
+func handlerWithMiddlewares(handler http.Handler, middlewares []func(http.Handler) http.Handler) http.Handler {
+	middlewareChain := alice.New()
+	for _, mw := range middlewares {
+		middlewareChain = middlewareChain.Append(mw)
+	}
+	return middlewareChain.Then(handler)
 }

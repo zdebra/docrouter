@@ -24,7 +24,7 @@ Golang router with OpenAPI specification built-in.
   - [ ] all OpenAPI types are supported
   - [ ] all OpenAPI schema validations are supported
   - [ ] route constructor
-  - [ ] middlewares support
+  - [x] middlewares support
 - [ ] Router tooling
   - [ ] Decode runtime helpers
     - [x] DecodeQueryParams runtime helper
