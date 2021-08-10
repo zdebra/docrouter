@@ -1,6 +1,7 @@
 package docrouter
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -57,4 +58,77 @@ func TestDocServer(t *testing.T) {
 	notFoundresp, err := http.Get(ts.URL + "/knock-knock")
 	require.NoError(t, err)
 	assert.Equal(t, http.StatusNotFound, notFoundresp.StatusCode)
+}
+
+func TestMiddlewares(t *testing.T) {
+	const ctxKey = "ctxkey"
+	const ctxVal = "ctxval"
+	const ctxVal2 = "ctxval2"
+
+	router := New(DefaultOptions)
+	myHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		v := r.Context().Value(ctxKey)
+		require.NotNil(t, v)
+		vs, ok := v.(string)
+		require.True(t, ok)
+		fmt.Fprintf(w, "%s:%s", ctxKey, vs)
+	})
+
+	setCtxVal := func(k, v string) func(next http.Handler) http.Handler {
+		return func(next http.Handler) http.Handler {
+			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				ctx := context.WithValue(r.Context(), k, v)
+				r = r.WithContext(ctx)
+				next.ServeHTTP(w, r)
+			})
+		}
+	}
+
+	err := router.AddRoute(Route{
+		Path:    "/",
+		Methods: []string{http.MethodGet},
+		Middlewares: []func(http.Handler) http.Handler{
+			setCtxVal(ctxKey, ctxVal),
+		},
+		Handler: myHandler,
+		Summary: "testing middlewares",
+	})
+	require.NoError(t, err)
+
+	err = router.AddRoute(Route{
+		Path:    "/another-route",
+		Methods: []string{http.MethodGet},
+		Middlewares: []func(http.Handler) http.Handler{
+			setCtxVal(ctxKey, ctxVal2),
+		},
+		Handler: myHandler,
+		Summary: "testing middlewares another route",
+	})
+	require.NoError(t, err)
+
+	ts := httptest.NewServer(router.muxRouter)
+	defer ts.Close()
+
+	t.Run("first route", func(t *testing.T) {
+		resp, err := http.Get(ts.URL + "/")
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+
+		respBytes, _ := ioutil.ReadAll(resp.Body)
+		defer resp.Body.Close()
+		expectedHandlerOutput := fmt.Sprintf("%s:%s", ctxKey, ctxVal)
+		assert.Equal(t, expectedHandlerOutput, string(respBytes))
+	})
+
+	t.Run("another route", func(t *testing.T) {
+		resp, err := http.Get(ts.URL + "/another-route")
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+
+		respBytes, _ := ioutil.ReadAll(resp.Body)
+		defer resp.Body.Close()
+		expectedHandlerOutput := fmt.Sprintf("%s:%s", ctxKey, ctxVal2)
+		assert.Equal(t, expectedHandlerOutput, string(respBytes))
+	})
+
 }

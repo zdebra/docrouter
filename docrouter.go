@@ -7,6 +7,7 @@ import (
 	"github.com/getkin/kin-openapi/openapi3"
 	validation "github.com/go-ozzo/ozzo-validation"
 	"github.com/gorilla/mux"
+	"github.com/justinas/alice"
 )
 
 type Router struct {
@@ -82,8 +83,13 @@ func (*Router) validateRoute(route *Route) error {
 }
 
 func (srv *Router) registerHandler(route *Route) error {
+	middlewareChain := alice.New()
+	for _, mw := range route.Middlewares {
+		middlewareChain = middlewareChain.Append(mw)
+	}
+	h := middlewareChain.Then(route.Handler)
 	srv.muxRouter.
-		Handle(route.Path, route.Handler).
+		Handle(route.Path, h).
 		Methods(route.Methods...)
 	return nil
 }

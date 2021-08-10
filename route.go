@@ -20,8 +20,9 @@ type Route struct {
 	RequestBody  interface{}
 	ResponseBody interface{}
 	Parameters   interface{}
-	Middlewares  []func(http.Handler) http.Handler
-	Handler      http.Handler
+	// Middlewares are route level middlewares executed for this particular route only
+	Middlewares []func(http.Handler) http.Handler
+	Handler     http.Handler
 
 	// Short summary
 	Summary string

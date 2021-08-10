@@ -7,5 +7,6 @@ require (
 	github.com/getkin/kin-openapi v0.66.0
 	github.com/go-ozzo/ozzo-validation v3.6.0+incompatible // indirect
 	github.com/gorilla/mux v1.8.0
+	github.com/justinas/alice v1.2.0 // indirect
 	github.com/stretchr/testify v1.7.0
 )
